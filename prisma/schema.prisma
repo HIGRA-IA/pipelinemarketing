@@ -1,0 +1,136 @@
+generator client {
+    provider = "prisma-client-js"
+    binaryTargets = ["native", "linux-musl-arm64-openssl-3.0.x", "debian-openssl-3.0.x"]
+}
+
+datasource db {
+    provider = "postgresql"
+    url      = env("DATABASE_URL")
+}
+
+model Company {
+  id             String    @id @default(cuid())
+  name           String    @unique
+  projectsPerYear Int      @default(6)
+  frequency      String    @default("1 a cada 2 meses")
+  projects       Project[]
+  createdAt      DateTime  @default(now())
+}
+
+model Project {
+  id            String        @id @default(cuid())
+  companyId     String
+  company       Company       @relation(fields: [companyId], references: [id])
+  name          String
+  theme         String        @default("")
+  objective     String        @default("Gerar SQL")
+  priorityProduct String      @default("")
+  startDate     DateTime
+  endDate       DateTime
+  status        String        @default("planejamento")
+  budgetTraffic Float         @default(3000)
+  targetCpl     Float         @default(600)
+  targetMqlToSql Float?
+  targetCtr     Float?
+  targetCustoMql Float?
+  targetCustoSql Float?
+  sprints       Sprint[]
+  channelData   ChannelData[]
+  kpiEntries    KpiEntry[]
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+}
+
+model Sprint {
+  id         String   @id @default(cuid())
+  projectId  String
+  project    Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  number     Int
+  name       String
+  startDate  DateTime
+  endDate    DateTime
+  objective  String   @default("")
+  status     String   @default("pendente")
+  tasks      Task[]
+  createdAt  DateTime @default(now())
+}
+
+model Task {
+  id              String   @id @default(cuid())
+  sprintId        String
+  sprint          Sprint   @relation(fields: [sprintId], references: [id], onDelete: Cascade)
+  stageNumber     Int
+  stageName       String
+  description     String
+  status          String   @default("pendente")
+  toolsAi         String   @default("")
+  toolsThirdParty String   @default("")
+  notes           String   @default("")
+  startDate       DateTime?
+  dueDate         DateTime?
+  completedAt     DateTime?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  resources       TaskResource[]
+}
+
+model Resource {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  category  String   @default("Ferramenta IA")
+  color     String   @default("#A19AD3")
+  createdAt DateTime @default(now())
+  tasks     TaskResource[]
+}
+
+model TaskResource {
+  id         String   @id @default(cuid())
+  taskId     String
+  task       Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  resourceId String
+  resource   Resource @relation(fields: [resourceId], references: [id], onDelete: Cascade)
+  createdAt  DateTime @default(now())
+
+  @@unique([taskId, resourceId])
+}
+
+model ChannelData {
+  id          String   @id @default(cuid())
+  projectId   String
+  project     Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  channel     String
+  subChannel  String   @default("")
+  date        DateTime?
+  year        Int      @default(2026)
+  month       Int      @default(1)
+  weekNumber  Int      @default(1)
+  impressions Int      @default(0)
+  clicks      Int      @default(0)
+  conversions Int      @default(0)
+  cost        Float    @default(0)
+  leads       Int      @default(0)
+  mqls        Int      @default(0)
+  sqls        Int      @default(0)
+  notes       String   @default("")
+  createdAt   DateTime @default(now())
+}
+
+model KpiEntry {
+  id              String   @id @default(cuid())
+  projectId       String
+  project         Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  date            DateTime
+  cpl             Float?   
+  costPerProposal Float?   
+  mqlToSqlRate    Float?   
+  projectedRoi    Float?   
+  ctr             Float?   
+  lpConversion    Float?   
+  mqlQuality      Float?   
+  totalSpent      Float?   
+  totalLeads      Int?     
+  totalMqls       Int?     
+  totalSqls       Int?     
+  notes           String   @default("")
+  createdAt       DateTime @default(now())
+}
