@@ -79,11 +79,37 @@ export default function KpiOverview() {
   }
 
   if (projectsWithKpis.length === 0) {
+    const kpiPlaceholders = [
+      { label: 'CPL (Custo por Lead)', description: 'Custo total ÷ Total de leads gerados', icon: '💰' },
+      { label: 'Taxa MQL → SQL', description: 'SQLs ÷ MQLs × 100', icon: '📊' },
+      { label: 'CTR (Taxa de Clique)', description: 'Cliques ÷ Impressões × 100', icon: '🎯' },
+      { label: 'Custo por MQL', description: 'Custo total ÷ Total de MQLs', icon: '📈' },
+      { label: 'Custo por SQL', description: 'Custo total ÷ Total de SQLs', icon: '💎' },
+      { label: 'Investimento Total', description: 'Soma de todos os custos nos canais', icon: '💼' },
+    ];
     return (
-      <div className="bg-white rounded-xl p-12 text-center shadow-sm">
-        <BarChart3 size={48} className="mx-auto text-slate-300 mb-4" />
-        <h3 className="text-lg font-semibold text-slate-600 mb-2">Sem dados para comparar</h3>
-        <p className="text-slate-400">Adicione dados de canais de marketing nos projetos para visualizar comparações</p>
+      <div className="space-y-6">
+        <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 text-sm text-blue-700 flex items-start gap-3">
+          <BarChart3 size={20} className="mt-0.5 flex-shrink-0" />
+          <div>
+            <p className="font-semibold mb-1">Dados de KPIs não registrados ainda</p>
+            <p>Para visualizar os KPIs calculados, acesse cada projeto → aba "Canais de Marketing" → clique em "Adicionar Dados".</p>
+          </div>
+        </div>
+        <div className="grid md:grid-cols-3 gap-4">
+          {kpiPlaceholders.map((kpi, i) => (
+            <div key={i} className="bg-white rounded-xl p-5 shadow-sm border border-slate-100">
+              <div className="flex items-center gap-3 mb-3">
+                <span className="text-2xl">{kpi.icon}</span>
+                <div>
+                  <p className="text-sm font-semibold text-slate-700">{kpi.label}</p>
+                  <p className="text-xs text-slate-400">{kpi.description}</p>
+                </div>
+              </div>
+              <p className="text-3xl font-bold text-slate-300">--</p>
+            </div>
+          ))}
+        </div>
       </div>
     );
   }

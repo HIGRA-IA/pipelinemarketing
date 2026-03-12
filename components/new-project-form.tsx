@@ -57,7 +57,13 @@ export default function NewProjectForm() {
     { key: 'name', label: 'Nome do Projeto', icon: Tag, type: 'text', required: true, placeholder: 'Ex: Campanha Hidráulica Industrial Q1' },
     { key: 'theme', label: 'Tema Técnico', icon: Target, type: 'text', placeholder: 'Ex: Sistemas hidráulicos para mineração' },
     { key: 'priorityProduct', label: 'Produto Prioritário', icon: Package, type: 'text', placeholder: 'Ex: Unidade HPU 500' },
-    { key: 'objective', label: 'Objetivo Principal', icon: Target, type: 'text', placeholder: 'Gerar SQL' },
+    { key: 'objective', label: 'Objetivo Principal', icon: Target, type: 'select', options: [
+      { value: 'Gerar SQL', label: 'Gerar SQL' },
+      { value: 'Gerar MQL', label: 'Gerar MQL' },
+      { value: 'Awareness / Branding', label: 'Awareness / Branding' },
+      { value: 'Retenção e Upsell', label: 'Retenção e Upsell' },
+      { value: 'Lançamento de Produto', label: 'Lançamento de Produto' },
+    ]},
     { key: 'startDate', label: 'Data de Início', icon: Calendar, type: 'date', required: true },
     { key: 'budgetTraffic', label: 'Orçamento Tráfego (R$)', icon: DollarSign, type: 'number', placeholder: '3000' },
     { key: 'targetCpl', label: 'Meta CPL (R$)', icon: TrendingDown, type: 'number', placeholder: '600' },
@@ -113,7 +119,7 @@ export default function NewProjectForm() {
         </div>
 
         <div className="bg-blue-50 rounded-lg p-4 text-sm text-blue-700">
-          <p className="font-medium mb-1">\u2139\ufe0f Estrutura automática</p>
+          <p className="font-medium mb-1">ℹ️ Estrutura automática</p>
           <p>Ao criar o projeto, serão gerados automaticamente 4 sprints de 15 dias com todas as etapas e tarefas conforme o template estratégico.</p>
         </div>
 

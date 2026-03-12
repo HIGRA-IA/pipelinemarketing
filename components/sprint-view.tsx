@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronDown, ChevronRight, CheckCircle2, Circle, Clock, Wrench, Bot, MessageSquare, Calendar, Plus, X, PlayCircle } from 'lucide-react';
+import { ChevronDown, ChevronRight, CheckCircle2, Circle, Clock, Wrench, Bot, MessageSquare, Calendar, Plus, X, PlayCircle, Search } from 'lucide-react';
 import ProgressBar from './progress-bar';
 import { calcProgress } from '@/lib/utils';
 import { TASK_STATUS_OPTIONS } from '@/lib/template-data';
@@ -32,6 +32,8 @@ export default function SprintView({ sprints = [], onUpdate }: SprintViewProps) 
   const [taskResources, setTaskResources] = useState<Record<string, Resource[]>>({});
   const [resourceEditing, setResourceEditing] = useState<string | null>(null);
   const [selectedResource, setSelectedResource] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [filterStatus, setFilterStatus] = useState('all');
 
   // Fetch all available resources
   useEffect(() => {
@@ -163,6 +165,30 @@ export default function SprintView({ sprints = [], onUpdate }: SprintViewProps) 
 
   return (
     <div className="space-y-4">
+      {/* Search and Filter Bar */}
+      <div className="flex gap-3 mb-4">
+        <div className="relative flex-1">
+          <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+          <input
+            type="text"
+            placeholder="Buscar tarefa..."
+            value={searchQuery}
+            onChange={e => setSearchQuery(e.target.value)}
+            className="w-full pl-9 pr-4 py-2 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none"
+          />
+        </div>
+        <select
+          value={filterStatus}
+          onChange={e => setFilterStatus(e.target.value)}
+          className="px-3 py-2 border border-slate-200 rounded-lg text-sm bg-white"
+        >
+          <option value="all">Todos os status</option>
+          {TASK_STATUS_OPTIONS.map(opt => (
+            <option key={opt.value} value={opt.value}>{opt.label}</option>
+          ))}
+        </select>
+      </div>
+
       {(sprints ?? [])?.map?.((sprint, idx) => {
         const tasks = sprint?.tasks ?? [];
         const progress = calcProgress(tasks);
@@ -218,6 +244,13 @@ export default function SprintView({ sprints = [], onUpdate }: SprintViewProps) 
                   <div className="px-5 pb-5 space-y-4">
                     {Object.entries(stages ?? {})?.map?.(([key, stageTasks]) => {
                       const stageName = key?.split?.('-')?.slice?.(1)?.join?.('-') ?? 'Etapa';
+
+                      const filteredTasks = stageTasks.filter(task => {
+                        const matchesSearch = !searchQuery || task.description?.toLowerCase().includes(searchQuery.toLowerCase());
+                        const matchesStatus = filterStatus === 'all' || task.status === filterStatus;
+                        return matchesSearch && matchesStatus;
+                      });
+
                       return (
                         <div key={key} className="border-l-2 pl-4 ml-4" style={{ borderColor: color }}>
                           <h4 className="text-sm font-semibold text-slate-700 mb-2 flex items-center gap-2">
@@ -225,20 +258,23 @@ export default function SprintView({ sprints = [], onUpdate }: SprintViewProps) 
                             {stageName}
                           </h4>
                           <div className="space-y-2">
-                            {(stageTasks ?? [])?.map?.((task: any) => {
+                            {filteredTasks.length === 0 && (searchQuery || filterStatus !== 'all') && (
+                              <p className="text-sm text-slate-400 py-4 text-center">Nenhuma tarefa encontrada para os filtros aplicados.</p>
+                            )}
+                            {(filteredTasks ?? [])?.map?.((task: any) => {
                               const isDone = task?.status === 'concluido';
                               const isInProgress = task?.status === 'em_andamento';
                               const isNaoAplicavel = task?.status === 'nao_aplicavel';
-                              
+
                               // Determine background color based on status
                               let bgClass = 'bg-slate-50';
                               if (isDone) bgClass = 'bg-green-50';
                               else if (isInProgress) bgClass = 'bg-orange-50';
                               else if (isNaoAplicavel) bgClass = '';
-                              
+
                               return (
-                                <div 
-                                  key={task?.id} 
+                                <div
+                                  key={task?.id}
                                   className={`rounded-lg p-3 transition-all hover:shadow-sm ${bgClass}`}
                                   style={isNaoAplicavel ? { backgroundColor: '#53565A' } : {}}
                                 >
@@ -263,10 +299,10 @@ export default function SprintView({ sprints = [], onUpdate }: SprintViewProps) 
                                     </button>
                                     <div className="flex-1 min-w-0">
                                       <p className={`text-sm ${
-                                        isDone 
-                                          ? 'line-through text-slate-400' 
-                                          : isNaoAplicavel 
-                                            ? 'line-through italic text-slate-300' 
+                                        isDone
+                                          ? 'line-through text-slate-400'
+                                          : isNaoAplicavel
+                                            ? 'line-through italic text-slate-300'
                                             : 'text-slate-700'
                                       }`}>
                                         {task?.description}
@@ -360,9 +396,9 @@ export default function SprintView({ sprints = [], onUpdate }: SprintViewProps) 
                                           </div>
                                         ) : (
                                           <button
-                                            onClick={() => { 
-                                              setStartDateEditing(task?.id); 
-                                              setStartDateValue(task?.startDate ? task.startDate.split('T')[0] : ''); 
+                                            onClick={() => {
+                                              setStartDateEditing(task?.id);
+                                              setStartDateValue(task?.startDate ? task.startDate.split('T')[0] : '');
                                             }}
                                             className={`text-[10px] flex items-center gap-1 ${
                                               isNaoAplicavel ? 'text-slate-400 hover:text-slate-300' : 'text-slate-400 hover:text-primary'
@@ -372,7 +408,7 @@ export default function SprintView({ sprints = [], onUpdate }: SprintViewProps) 
                                             {task?.startDate ? `Início: ${formatDate(task.startDate)}` : 'Definir início'}
                                           </button>
                                         )}
-                                        
+
                                         {/* Deadline */}
                                         {deadlineEditing === task?.id ? (
                                           <div className="flex gap-2 items-center">
@@ -389,9 +425,9 @@ export default function SprintView({ sprints = [], onUpdate }: SprintViewProps) 
                                           </div>
                                         ) : (
                                           <button
-                                            onClick={() => { 
-                                              setDeadlineEditing(task?.id); 
-                                              setDeadlineValue(task?.dueDate ? task.dueDate.split('T')[0] : ''); 
+                                            onClick={() => {
+                                              setDeadlineEditing(task?.id);
+                                              setDeadlineValue(task?.dueDate ? task.dueDate.split('T')[0] : '');
                                             }}
                                             className={`text-[10px] flex items-center gap-1 ${
                                               isNaoAplicavel ? 'text-slate-400 hover:text-slate-300' : 'text-slate-400 hover:text-primary'

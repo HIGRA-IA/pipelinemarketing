@@ -31,6 +31,19 @@ interface ProjectData {
   _count: { channelData: number; kpiEntries: number };
 }
 
+const getProjectHealth = (project: any, progress: number) => {
+  const now = new Date();
+  const start = new Date(project?.startDate);
+  const end = new Date(project?.endDate);
+  const totalDuration = end.getTime() - start.getTime();
+  const elapsed = now.getTime() - start.getTime();
+  const expectedProgress = totalDuration > 0 ? Math.min(100, Math.round((elapsed / totalDuration) * 100)) : 0;
+  const diff = progress - expectedProgress;
+  if (diff >= -10) return { label: 'No prazo', color: '#00c853', emoji: '🟢' };
+  if (diff >= -25) return { label: 'Atenção', color: '#FF9149', emoji: '🟡' };
+  return { label: 'Atrasado', color: '#ef4444', emoji: '🔴' };
+};
+
 export default function DashboardContent() {
   const [projects, setProjects] = useState<ProjectData[]>([]);
   const [loading, setLoading] = useState(true);
@@ -72,7 +85,7 @@ export default function DashboardContent() {
     );
   }
 
-  const activeProjects = projects?.filter?.(p => ['planejamento', 'em_andamento']?.includes?.(p?.status)) ?? [];
+  const activeProjects = projects?.filter?.(p => ['planejamento', 'em_andamento'].includes(p?.status?.toLowerCase?.() ?? '')) ?? [];
   const totalTasks = projects?.flatMap?.(p => p?.sprints?.flatMap?.(s => s?.tasks ?? []) ?? []) ?? [];
   const completedTasks = totalTasks?.filter?.(t => t?.status === 'concluido') ?? [];
   const totalBudget = projects?.reduce?.((sum, p) => sum + (p?.budgetTraffic ?? 0), 0) ?? 0;
@@ -104,7 +117,7 @@ export default function DashboardContent() {
                 </div>
               </div>
               <p className="text-2xl font-bold text-slate-800">
-                <AnimatedCounter end={stat?.value ?? 0} prefix={stat?.prefix ?? ''} />
+                {stat?.prefix}{stat?.label === 'Orçamento Total' ? stat.value.toLocaleString('pt-BR', { minimumFractionDigits: 0 }) : (stat?.value ?? 0)}
                 {stat?.suffix && <span className="text-sm text-slate-400">{stat.suffix}</span>}
               </p>
               <p className="text-xs text-slate-500 mt-1">{stat?.label}</p>
@@ -194,6 +207,25 @@ export default function DashboardContent() {
         </div>
       )}
 
+      {/* Company Status Grid */}
+      <div>
+        <h2 className="text-lg font-semibold text-slate-800 mb-4">Status por Empresa</h2>
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+          {['HIGRA Industrial', 'HIGRA Systems', 'HIGRA Customer Service', 'HIGRA Service Sul', 'HIGRA Motors', 'HIGRA Mining', 'Voltson Brasil'].map(companyName => {
+            const companyProjects = projects.filter(p => p?.company?.name === companyName);
+            const hasActive = companyProjects.some(p => ['planejamento', 'em_andamento'].includes(p?.status?.toLowerCase?.() ?? ''));
+            const activeCount = companyProjects.filter(p => ['planejamento', 'em_andamento'].includes(p?.status?.toLowerCase?.() ?? '')).length;
+            return (
+              <div key={companyName} className={`bg-white rounded-xl p-4 shadow-sm border-l-4 ${hasActive ? 'border-green-500' : 'border-slate-200'}`}>
+                <p className="text-xs font-semibold text-slate-700 leading-tight">{companyName}</p>
+                <p className="text-2xl font-bold mt-1" style={{ color: hasActive ? '#00c853' : '#94a3b8' }}>{activeCount}</p>
+                <p className="text-[10px] text-slate-400">{hasActive ? `projeto${activeCount > 1 ? 's' : ''} ativo${activeCount > 1 ? 's' : ''}` : 'sem projetos ativos'}</p>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
       {/* Active Projects */}
       <div>
         <div className="flex items-center justify-between mb-4">
@@ -219,6 +251,7 @@ export default function DashboardContent() {
             {activeProjects?.map?.((project, i) => {
               const allTasks = project?.sprints?.flatMap?.(s => s?.tasks ?? []) ?? [];
               const progress = calcProgress(allTasks);
+              const health = getProjectHealth(project, progress);
               const currentSprint = project?.sprints?.find?.(s => {
                 const now = new Date();
                 return new Date(s?.startDate ?? '') <= now && now <= new Date(s?.endDate ?? '');
@@ -238,7 +271,12 @@ export default function DashboardContent() {
                       <h3 className="text-base font-bold text-slate-800 mt-0.5">{project?.name}</h3>
                       {project?.theme && <p className="text-xs text-slate-500 mt-0.5">{project.theme}</p>}
                     </div>
-                    <StatusBadge status={project?.status} />
+                    <div className="flex items-center gap-2">
+                      <StatusBadge status={project?.status} />
+                      <span className="text-xs px-2 py-0.5 rounded-full text-white" style={{ backgroundColor: health.color }}>
+                        {health.emoji} {health.label}
+                      </span>
+                    </div>
                   </div>
 
                   <div className="mb-3">

@@ -9,14 +9,7 @@ export async function GET(req: Request) {
     const includeAll = searchParams.get('includeAll') === 'true';
 
     const tasks = await prisma.task.findMany({
-      where: includeAll ? {
-        OR: [
-          { startDate: { not: null } },
-          { dueDate: { not: null } },
-        ],
-      } : {
-        dueDate: { not: null },
-      },
+      where: includeAll ? {} : { dueDate: { not: null } },
       include: {
         sprint: {
           include: {

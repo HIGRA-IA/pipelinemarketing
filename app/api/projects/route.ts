@@ -40,13 +40,6 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Campos obrigatórios: companyId, name, startDate' }, { status: 400 });
     }
 
-    const activeProjects = await prisma.project.count({
-      where: { status: { in: ['planejamento', 'em_andamento'] } },
-    });
-    if (activeProjects >= 4) {
-      return NextResponse.json({ error: 'Máximo de 4 projetos simultâneos atingido' }, { status: 400 });
-    }
-
     const start = new Date(startDate);
     const end = new Date(start);
     end.setDate(end.getDate() + 60);
