@@ -2,6 +2,7 @@ export const dynamic = 'force-dynamic';
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/db';
 import { SPRINT_TEMPLATES } from '@/lib/template-data';
+import { calculateTaskDates } from '@/lib/calculate-task-dates';
 
 export async function GET() {
   try {
@@ -69,16 +70,20 @@ export async function POST(request: Request) {
               objective: st?.objective ?? '',
               status: 'pendente',
               tasks: {
-                create: (st?.stages ?? [])?.flatMap?.((stage) =>
-                  (stage?.tasks ?? [])?.map?.((task) => ({
-                    stageNumber: stage?.number ?? 1,
-                    stageName: stage?.name ?? '',
-                    description: task?.description ?? '',
-                    toolsAi: task?.toolsAi ?? '',
-                    toolsThirdParty: task?.toolsThirdParty ?? '',
-                    status: 'pendente',
-                  }))
-                ) ?? [],
+                create: calculateTaskDates(
+                  sprintStart,
+                  sprintEnd,
+                  (st?.stages ?? [])?.flatMap?.((stage) =>
+                    (stage?.tasks ?? [])?.map?.((task) => ({
+                      stageNumber: stage?.number ?? 1,
+                      stageName: stage?.name ?? '',
+                      description: task?.description ?? '',
+                      toolsAi: task?.toolsAi ?? '',
+                      toolsThirdParty: task?.toolsThirdParty ?? '',
+                      status: 'pendente',
+                    }))
+                  ) ?? []
+                ),
               },
             };
           }) ?? [],
