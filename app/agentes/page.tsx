@@ -16,7 +16,7 @@ export default function AgentesPage() {
   }, []);
 
   return (
-    <div className="space-y-6">
+    <div className="max-w-[1200px] mx-auto px-6 py-6 space-y-6">
       <div>
         <h1 className="text-2xl font-bold text-primary">Agentes IA</h1>
         <p className="text-sm text-slate-500 mt-1">

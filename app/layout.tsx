@@ -11,6 +11,8 @@ export const metadata: Metadata = {
   openGraph: { images: ['/og-image.png'] },
 };
 
+import Sidebar from '@/components/sidebar';
+
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="pt-BR" suppressHydrationWarning>
@@ -18,8 +20,13 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <script src="https://apps.abacus.ai/chatllm/appllm-lib.js" />
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
       </head>
-      <body className="min-h-screen bg-[#f0f4f8]" suppressHydrationWarning>
-        {children}
+      <body className="h-screen overflow-hidden bg-[#f0f4f8]" suppressHydrationWarning>
+        <div className="flex h-screen overflow-hidden">
+          <Sidebar />
+          <main className="flex-1 overflow-y-auto">
+            {children}
+          </main>
+        </div>
       </body>
     </html>
   );

@@ -103,7 +103,7 @@ export default function ChatPage() {
   const formatTime = (iso: string) => new Date(iso).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
 
   return (
-    <div className="flex flex-col h-[calc(100vh-80px)]">
+    <div className="flex flex-col h-screen">
       {/* Header */}
       <div className="bg-white border-b border-slate-100 px-4 py-3 flex items-center gap-3 flex-shrink-0">
         <Link href={`/projetos/${projectId}`} className="p-1.5 hover:bg-slate-100 rounded-lg transition">

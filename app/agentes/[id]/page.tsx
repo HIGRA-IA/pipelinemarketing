@@ -67,7 +67,7 @@ export default function AgentEditPage() {
   const set = (key: string, val: any) => setAgent((prev: any) => ({ ...prev, [key]: val }));
 
   return (
-    <div className="space-y-6 max-w-3xl">
+    <div className="max-w-3xl mx-auto px-6 py-6 space-y-6">
       {/* Header */}
       <div className="flex items-center gap-3">
         <Link href="/agentes" className="p-2 hover:bg-slate-100 rounded-lg transition">
@@ -116,22 +116,69 @@ export default function AgentEditPage() {
         <div className="grid grid-cols-2 gap-4">
           <div>
             <label className="text-xs text-slate-500 mb-1 block">Provider</label>
-            <select className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm" value={agent.modelProvider} onChange={e => set('modelProvider', e.target.value)}>
+            <select
+              className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm"
+              value={agent.modelProvider}
+              onChange={e => {
+                const provider = e.target.value;
+                set('modelProvider', provider);
+                // Reset model to first option of the selected provider
+                if (provider === 'openai') set('modelName', 'dall-e-3');
+                else set('modelName', 'claude-opus-4-5');
+              }}
+            >
               <option value="anthropic">Anthropic (Claude)</option>
               <option value="openai">OpenAI (DALL-E)</option>
             </select>
           </div>
           <div>
             <label className="text-xs text-slate-500 mb-1 block">Modelo</label>
-            <input className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm" value={agent.modelName} onChange={e => set('modelName', e.target.value)} />
+            {agent.modelProvider === 'openai' ? (
+              <select className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm" value={agent.modelName} onChange={e => set('modelName', e.target.value)}>
+                <optgroup label="DALL-E — Geração de Imagens">
+                  <option value="dall-e-3">dall-e-3 (mais recente, 1024×1024)</option>
+                  <option value="dall-e-2">dall-e-2</option>
+                </optgroup>
+              </select>
+            ) : (
+              <select className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm" value={agent.modelName} onChange={e => set('modelName', e.target.value)}>
+                <optgroup label="Claude Opus — Máxima inteligência">
+                  <option value="claude-opus-4-5">claude-opus-4-5 (mais recente)</option>
+                  <option value="claude-opus-4-0">claude-opus-4-0</option>
+                  <option value="claude-3-opus-20240229">claude-3-opus-20240229</option>
+                </optgroup>
+                <optgroup label="Claude Sonnet — Equilíbrio ideal">
+                  <option value="claude-sonnet-4-5">claude-sonnet-4-5 (mais recente)</option>
+                  <option value="claude-sonnet-4-20250514">claude-sonnet-4-20250514</option>
+                  <option value="claude-3-7-sonnet-20250219">claude-3-7-sonnet-20250219</option>
+                  <option value="claude-3-5-sonnet-20241022">claude-3-5-sonnet-20241022</option>
+                  <option value="claude-3-5-sonnet-20240620">claude-3-5-sonnet-20240620</option>
+                  <option value="claude-3-sonnet-20240229">claude-3-sonnet-20240229</option>
+                </optgroup>
+                <optgroup label="Claude Haiku — Velocidade e custo">
+                  <option value="claude-haiku-4-5">claude-haiku-4-5 (mais recente)</option>
+                  <option value="claude-3-5-haiku-20241022">claude-3-5-haiku-20241022</option>
+                  <option value="claude-3-haiku-20240307">claude-3-haiku-20240307</option>
+                </optgroup>
+              </select>
+            )}
+            <p className="text-[10px] text-slate-400 mt-1">
+              {agent.modelProvider === 'anthropic'
+                ? 'Opus = máxima inteligência · Sonnet = equilíbrio · Haiku = mais rápido e econômico'
+                : 'DALL-E 3 recomendado para imagens de alta qualidade'}
+            </p>
           </div>
           <div>
-            <label className="text-xs text-slate-500 mb-1 block">Temperatura: {agent.temperature}</label>
-            <input type="range" min={0} max={1} step={0.1} className="w-full" value={agent.temperature} onChange={e => set('temperature', parseFloat(e.target.value))} />
+            <label className="text-xs text-slate-500 mb-1 block">Temperatura: <span className="font-medium text-slate-700">{agent.temperature}</span></label>
+            <input type="range" min={0} max={1} step={0.1} className="w-full accent-primary" value={agent.temperature} onChange={e => set('temperature', parseFloat(e.target.value))} />
+            <div className="flex justify-between text-[10px] text-slate-300 mt-0.5">
+              <span>0 — Preciso</span><span>0.5 — Balanceado</span><span>1 — Criativo</span>
+            </div>
           </div>
           <div>
             <label className="text-xs text-slate-500 mb-1 block">Max Tokens</label>
-            <input type="number" className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm" value={agent.maxTokens} onChange={e => set('maxTokens', parseInt(e.target.value))} />
+            <input type="number" min={256} max={32000} step={256} className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm" value={agent.maxTokens} onChange={e => set('maxTokens', parseInt(e.target.value))} />
+            <p className="text-[10px] text-slate-400 mt-1">Máx. por resposta. Opus/Sonnet suportam até 32 000 tokens.</p>
           </div>
         </div>
       </section>
