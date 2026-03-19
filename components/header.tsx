@@ -3,13 +3,14 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, FolderKanban, BarChart3, Bell, Menu, X, CalendarClock } from 'lucide-react';
+import { LayoutDashboard, FolderKanban, BarChart3, Bell, Menu, X, CalendarClock, Bot } from 'lucide-react';
 
 const navItems = [
   { href: '/', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/projetos', label: 'Projetos', icon: FolderKanban },
   { href: '/cronograma', label: 'Cronograma', icon: CalendarClock },
   { href: '/kpis', label: 'KPIs', icon: BarChart3 },
+  { href: '/agentes', label: 'Agentes IA', icon: Bot },
   { href: '/notificacoes', label: 'Notificações', icon: Bell },
 ];
 

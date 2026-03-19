@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
-import { ArrowLeft, Building2, Calendar, Target, DollarSign, Edit2, Save, X } from 'lucide-react';
+import { ArrowLeft, Building2, Calendar, Target, DollarSign, Edit2, Save, X, MessageSquare, History } from 'lucide-react';
 import StatusBadge from './status-badge';
 import ProgressBar from './progress-bar';
 import SprintView from './sprint-view';
@@ -13,9 +13,77 @@ import ProjectSettings from './project-settings';
 import { formatDate, formatCurrency, calcProgress } from '@/lib/utils';
 import { STATUS_OPTIONS } from '@/lib/template-data';
 
+function MateriaisTab({ projectId }: { projectId: string }) {
+  const [agents, setAgents] = useState<any[]>([]);
+  const [conversations, setConversations] = useState<Record<string, any[]>>({});
+
+  useEffect(() => {
+    fetch('/api/agents').then(r => r.json()).then(data => {
+      const active = (Array.isArray(data) ? data : []).filter((a: any) => a.isActive);
+      setAgents(active);
+      active.forEach((agent: any) => {
+        fetch(`/api/projects/${projectId}/conversations?agentId=${agent.id}`)
+          .then(r => r.json())
+          .then(convs => setConversations(prev => ({ ...prev, [agent.id]: Array.isArray(convs) ? convs : [] })));
+      });
+    });
+  }, [projectId]);
+
+  return (
+    <div className="space-y-4">
+      <div>
+        <h2 className="text-lg font-bold text-slate-800">Materiais da Campanha</h2>
+        <p className="text-sm text-slate-500">Produza conteúdos, imagens e análises com agentes IA treinados para o setor industrial B2B.</p>
+      </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {agents.map(agent => {
+          const convs = conversations[agent.id] ?? [];
+          const lastMsg = convs[0]?.messages?.[0];
+          return (
+            <div key={agent.id} className="bg-white rounded-xl p-5 shadow-sm border border-slate-100 flex flex-col gap-3">
+              <div className="flex items-center gap-3">
+                <span className="text-3xl">{agent.icon ?? '🤖'}</span>
+                <div>
+                  <p className="font-semibold text-slate-800">{agent.name}</p>
+                  <p className="text-xs text-slate-400">{agent.modelProvider === 'openai' ? 'OpenAI' : 'Anthropic'} · {convs.length} conversa{convs.length !== 1 ? 's' : ''}</p>
+                </div>
+              </div>
+              <p className="text-sm text-slate-500 flex-1">{agent.description}</p>
+              {lastMsg ? (
+                <p className="text-xs text-slate-400 italic truncate">
+                  Último: {lastMsg.content?.slice(0, 90)}{lastMsg.content?.length > 90 ? '…' : ''}
+                </p>
+              ) : (
+                <p className="text-xs text-slate-300 italic">Nenhum material gerado ainda</p>
+              )}
+              <div className="flex gap-2">
+                <Link
+                  href={`/projetos/${projectId}/materiais/${agent.id}`}
+                  className="flex-1 flex items-center justify-center gap-1.5 bg-primary text-white text-sm py-2 rounded-lg hover:bg-primary/90 transition"
+                >
+                  <MessageSquare size={14} /> Abrir Chat
+                </Link>
+                {convs.length > 0 && (
+                  <Link
+                    href={`/projetos/${projectId}/materiais/${agent.id}/historico`}
+                    className="flex items-center justify-center gap-1.5 border border-slate-200 text-slate-600 text-sm px-3 py-2 rounded-lg hover:bg-slate-50 transition"
+                  >
+                    <History size={14} />
+                  </Link>
+                )}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 const TABS = [
   { key: 'sprints', label: 'Sprints & Tarefas' },
   { key: 'canais', label: 'Canais de Marketing' },
+  { key: 'materiais', label: '📦 Materiais da Campanha' },
   { key: 'kpis', label: 'KPIs & Métricas' },
   { key: 'config', label: 'Configurações' },
 ];
@@ -114,6 +182,7 @@ export default function ProjectDetail({ projectId }: { projectId: string }) {
       <motion.div key={tab} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.2 }}>
         {tab === 'sprints' && <SprintView sprints={project?.sprints ?? []} onUpdate={loadProject} />}
         {tab === 'canais' && <ChannelDataForm projectId={projectId} channelData={project?.channelData ?? []} onUpdate={loadProject} />}
+        {tab === 'materiais' && <MateriaisTab projectId={projectId} />}
         {tab === 'kpis' && <KpiDashboard project={project} channelData={project?.channelData ?? []} onUpdate={loadProject} />}
         {tab === 'config' && <ProjectSettings project={project} onUpdate={loadProject} />}
       </motion.div>
